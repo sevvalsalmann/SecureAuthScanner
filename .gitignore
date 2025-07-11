@@ -1,0 +1,20 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Build results
+bin/
+obj/
+out/
+
+# User-specific files
+*.log
+*.db
+*.local
+
+# Rider / JetBrains
+.idea/
+
+# ASP.NET launch settings
+Properties/launchSettings.json
