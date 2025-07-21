@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Diagnostics;
 using MinimalApiProject.Models;
 
 namespace MinimalApiProject.Services;
@@ -24,6 +24,7 @@ public class ScanService
         {
             var lines = await File.ReadAllLinesAsync(file);
             string className = "";
+
             for (int i = 0; i < lines.Length; i++)
             {
                 string line = lines[i].Trim();
@@ -33,17 +34,13 @@ public class ScanService
 
                 if (line.StartsWith("public") && line.Contains("(") && line.Contains(")"))
                 {
-                    string methodName = line.Split(' ').Last().Split('(')[0];
+                    string methodName = ExtractMethodName(line);
 
-                    // Yukarıdaki 5 satıra bak, Authorize veya AllowAnonymous var mı
-                    bool hasAuthorize = lines.Take(i).Reverse().Take(5).Any(l => l.Trim().StartsWith("[Authorize"));
-                    bool hasEmptyAuthorize = lines.Take(i).Reverse().Take(5).Any(l =>
-                    {
-                        string t = l.Trim();
-                        return t == "[Authorize]" || t == "[Authorize()]" || t == "[Authorize(\"\")]";
-                    });
-
-                    bool hasAllowAnonymous = lines.Take(i).Reverse().Take(5).Any(l => l.Trim().StartsWith("[AllowAnonymous"));
+                    var recentAttributes = lines.Take(i).Reverse().Take(5).Select(l => l.Trim()).ToList();
+                    string? authorizeLine = recentAttributes.FirstOrDefault(l => l.StartsWith("[Authorize"));
+                    bool hasAuthorize = authorizeLine != null;
+                    bool hasAllowAnonymous = recentAttributes.Any(l => l.StartsWith("[AllowAnonymous"));
+                    bool hasEmptyAuthorize = hasAuthorize && !authorizeLine.Contains("Roles") && !authorizeLine.Contains("Policy");
 
                     if (!hasAuthorize && !hasAllowAnonymous)
                     {
@@ -53,7 +50,7 @@ public class ScanService
                             ClassName = className,
                             MethodName = methodName,
                             LineNumber = i + 1,
-                            IssueType = "Missing [Authorize] attribute"
+                            IssueType = "No authorization attribute found (missing [Authorize] or [AllowAnonymous])"
                         });
                     }
                     else if (hasEmptyAuthorize)
@@ -64,7 +61,7 @@ public class ScanService
                             ClassName = className,
                             MethodName = methodName,
                             LineNumber = i + 1,
-                            IssueType = "Empty or invalid [Authorize] attribute"
+                            IssueType = "[Authorize] attribute is present but lacks roles or policy"
                         });
                     }
                 }
@@ -74,6 +71,50 @@ public class ScanService
         return results;
     }
 
+    public async Task<List<ScanResult>> ScanAzureRepositoryAsync(ScanAzureRequest request)
+    {
+        var results = new List<ScanResult>();
+
+        string tempFolder = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+        Directory.CreateDirectory(tempFolder);
+
+        // Token ile HTTPS bağlantısı kurulması
+        string repoUrl;
+        if (!string.IsNullOrEmpty(request.PersonalAccessToken))
+        {
+            repoUrl = $"https://{request.PersonalAccessToken}@dev.azure.com/{request.Organization}/{request.Project}/_git/{request.Repository}";
+        }
+        else
+        {
+            repoUrl = $"https://dev.azure.com/{request.Organization}/{request.Project}/_git/{request.Repository}";
+        }
+
+        var psi = new ProcessStartInfo
+        {
+            FileName = "git",
+            Arguments = $"clone {repoUrl} .",
+            WorkingDirectory = tempFolder,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false
+        };
+
+        using var process = Process.Start(psi);
+        await process.WaitForExitAsync();
+
+        if (process.ExitCode != 0)
+        {
+            string error = await process.StandardError.ReadToEndAsync();
+            results.Add(new ScanResult
+            {
+                IssueType = $"ERROR: Git clone failed: {error}"
+            });
+            return results;
+        }
+
+        var scanRequest = new ScanRequest { RepositoryPath = tempFolder };
+        return await ScanRepositoryAsync(scanRequest);
+    }
 
     private string ExtractMethodName(string line)
     {
