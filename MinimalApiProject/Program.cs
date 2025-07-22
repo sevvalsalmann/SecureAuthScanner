@@ -5,10 +5,8 @@ using Microsoft.AspNetCore.Cors;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ScanService'i DI container'a ekle
 builder.Services.AddScoped<ScanService>();
 
-// ✅ Swagger'ı ekle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -30,30 +28,26 @@ var app = builder.Build();
 app.UseCors();
 
 
-// ✅ Swagger middleware'ini ekle
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "SecureAuthScanner API v1");
-        c.RoutePrefix = string.Empty; // Böylece localhost:5000 doğrudan Swagger arayüzü olur
+        c.RoutePrefix = string.Empty;
     });
 
 }
 
-// Local dizini taramak için
-app.MapPost("/scan-local", async (ScanRequest request, ScanService scanner) =>
+app.MapPost("/scan-local", async (ScanRequest req, ScanService scanner) =>
 {
-    var result = await scanner.ScanRepositoryAsync(request);
-    return Results.Ok(result);
+    return await scanner.ScanLocalAsync(req.RepositoryPath);
 });
 
-// Azure DevOps reposunu taramak için
-app.MapPost("/scan-azure", async (ScanAzureRequest request, ScanService scanner) =>
+app.MapPost("/scan-azure", async (ScanAzureRequest req, ScanService scanner) =>
 {
-    var result = await scanner.ScanAzureRepositoryAsync(request);
-    return Results.Ok(result);
+    return await scanner.ScanAzureAsync(req.Organization, req.Project, req.Repository, req.PersonalAccessToken);
 });
+
 
 app.Run();
