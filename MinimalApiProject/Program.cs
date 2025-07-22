@@ -34,20 +34,26 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "SecureAuthScanner API v1");
-        c.RoutePrefix = string.Empty;
+        c.RoutePrefix = "swagger";
     });
 
 }
 
-app.MapPost("/scan-local", async (ScanRequest req, ScanService scanner) =>
+app.MapPost("/scan-local", async (ScanRequest request, ScanService scanner) =>
 {
-    return await scanner.ScanLocalAsync(req.RepositoryPath);
+    var result = await scanner.ScanLocalAsync(request.RepositoryPath);
+    return Results.Ok(result);
 });
 
-app.MapPost("/scan-azure", async (ScanAzureRequest req, ScanService scanner) =>
+app.MapPost("/scan-azure", async (ScanAzureRequest request, ScanService scanner) =>
 {
-    return await scanner.ScanAzureAsync(req.Organization, req.Project, req.Repository, req.PersonalAccessToken);
+    var result = await scanner.ScanAzureAsync(
+        request.Organization,
+        request.Project,
+        request.Repository,
+        request.PersonalAccessToken
+    );
+    return Results.Ok(result);
 });
-
 
 app.Run();
