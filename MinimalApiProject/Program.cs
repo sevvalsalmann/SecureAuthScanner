@@ -2,11 +2,11 @@
 using MinimalApiProject.Services;
 using Microsoft.AspNetCore.Cors;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<ScanService>();
 
+builder.Services.AddControllersWithViews(); 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -22,11 +22,9 @@ builder.Services.AddCors(options =>
     );
 });
 
-
 var app = builder.Build();
 
 app.UseCors();
-
 
 if (app.Environment.IsDevelopment())
 {
@@ -34,10 +32,17 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "SecureAuthScanner API v1");
-        c.RoutePrefix = "swagger";
+        c.RoutePrefix = "swagger";   
     });
-
 }
+
+app.UseStaticFiles();   
+app.UseRouting();
+
+app.UseAuthorization(); 
+app.UseAuthentication(); 
+
+app.MapControllers();  
 
 app.MapPost("/scan-local", async (ScanRequest request, ScanService scanner) =>
 {
@@ -55,5 +60,10 @@ app.MapPost("/scan-azure", async (ScanAzureRequest request, ScanService scanner)
     );
     return Results.Ok(result);
 });
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=ScanUi}/{action=Index}/{id?}");
+
 
 app.Run();

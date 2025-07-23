@@ -1,0 +1,54 @@
+﻿.result-box {
+    max-width: 1200px; 
+    width: 99vw;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 6px 24px 0 rgba(31,38,135,.10);
+    padding: 32px 18px 18px 18px;
+}
+
+.result-paragraph {
+    background: #f7faff;
+    border-left: 5px solid #3b5998;
+    padding: 18px 18px 8px 18px;
+    margin-bottom: 18px;
+    border-radius: 10px;
+    font-size: 1.13em;
+    word-break: break-all; 
+    white-space: normal;
+    color: #232942;
+}
+
+    .result-paragraph span {
+        font-size: 1em;
+    }
+
+    .result-paragraph .issue-yellow {
+        font-weight: 600;
+        color: #ffc107;
+    }
+
+    .result-paragraph .issue-red {
+        font-weight: 600;
+        color: #dc3545;
+    }
+
+    .result-paragraph .issue-green {
+        font-weight: 600;
+        color: #28a745;
+    }
+.issue-red {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.issue-yellow {
+    color: #ffc107;
+    font-weight: 600;
+}
+
+.issue-green {
+    color: #28a745;
+    font-weight: 600;
+}
