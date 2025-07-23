@@ -1,5 +1,5 @@
 ﻿.result-box {
-    max-width: 1200px; /* Geniş kutu */
+    max-width: 1200px; 
     width: 99vw;
     margin: 40px auto;
     background: #fff;
@@ -15,7 +15,7 @@
     margin-bottom: 18px;
     border-radius: 10px;
     font-size: 1.13em;
-    word-break: break-all; /* Uzun path ve metinler aşağı iner */
+    word-break: break-all; 
     white-space: normal;
     color: #232942;
 }

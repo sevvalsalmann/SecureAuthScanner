@@ -12,6 +12,7 @@ namespace MinimalApiProject.Controllers
         {
             _scanService = scanService;
         }
+
         [HttpGet]
         public IActionResult Index()
         {
@@ -21,40 +22,77 @@ namespace MinimalApiProject.Controllers
         [HttpPost]
         [Route("ScanUi/Index")]
         public async Task<IActionResult> Scan(ScanFormModel model)
-
         {
-            List<ScanResult> results;
+            if (string.IsNullOrEmpty(model.Mode))
+            {
+                ViewBag.ErrorMessage = "Please select repository mode.";
+                return View("Index", model);
+            }
 
             if (model.Mode == "Remote")
             {
-                results = await _scanService.ScanAzureAsync(
+                if (string.IsNullOrWhiteSpace(model.Organization)
+                    || string.IsNullOrWhiteSpace(model.Project)
+                    || string.IsNullOrWhiteSpace(model.Repository))
+                {
+                    ViewBag.ErrorMessage = "Please fill in all required fields for remote repository.";
+                    return View("Index", model);
+                }
+
+                var results = await _scanService.ScanAzureAsync(
                     model.Organization,
-                    model.Project, 
-                    model.Repository, 
+                    model.Project,
+                    model.Repository,
                     model.PersonalAccessToken
                 );
+
+                var resultModel = new ScanResultModel
+                {
+                    Success = true,
+                    Results = results.Select(r => new ScanResultItem
+                    {
+                        FilePath = r.FilePath,
+                        ClassName = r.ClassName,
+                        MethodName = r.MethodName,
+                        LineNumber = r.LineNumber,
+                        IssueType = r.IssueType,
+                        Annotation = r.Annotation
+                    }).ToList()
+                };
+
+                return View("Result", resultModel);
+            }
+            else if (model.Mode == "Local")
+            {
+                if (string.IsNullOrWhiteSpace(model.LocalPath))
+                {
+                    ViewBag.ErrorMessage = "Please enter the local folder path.";
+                    return View("Index", model);
+                }
+
+                var results = await _scanService.ScanLocalAsync(model.LocalPath);
+
+                var resultModel = new ScanResultModel
+                {
+                    Success = true,
+                    Results = results.Select(r => new ScanResultItem
+                    {
+                        FilePath = r.FilePath,
+                        ClassName = r.ClassName,
+                        MethodName = r.MethodName,
+                        LineNumber = r.LineNumber,
+                        IssueType = r.IssueType,
+                        Annotation = r.Annotation
+                    }).ToList()
+                };
+
+                return View("Result", resultModel);
             }
             else
             {
-                results = await _scanService.ScanLocalAsync(model.LocalPath);
+                ViewBag.ErrorMessage = "Invalid repository mode.";
+                return View("Index", model);
             }
-
-            // Burada ScanResultModel'e map edelim (veya ViewModel varsa onu kullan)
-            var resultModel = new ScanResultModel
-            {
-                Success = true,
-                Results = results.Select(r => new ScanResultItem
-                {
-                    FilePath = r.FilePath,
-                    ClassName = r.ClassName,
-                    MethodName = r.MethodName,
-                    LineNumber = r.LineNumber,
-                    IssueType = r.IssueType,
-                    Annotation = r.Annotation
-                }).ToList()
-            };
-
-            return View("Result", resultModel);
         }
     }
 }

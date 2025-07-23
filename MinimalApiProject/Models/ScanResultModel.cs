@@ -7,7 +7,7 @@
         public string MethodName { get; set; }
         public int LineNumber { get; set; }
         public string IssueType { get; set; }
-        public string Annotation { get; set; } // opsiyonel
+        public string Annotation { get; set; } 
     }
 
     public class ScanResultModel

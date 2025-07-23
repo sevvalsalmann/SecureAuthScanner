@@ -4,10 +4,9 @@ using Microsoft.AspNetCore.Cors;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ---- SERVİSLER ----
 builder.Services.AddScoped<ScanService>();
 
-builder.Services.AddControllersWithViews();  // ← Bunu ekle! (MVC view ve controller için)
+builder.Services.AddControllersWithViews(); 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -23,7 +22,6 @@ builder.Services.AddCors(options =>
     );
 });
 
-// ---- APP BUILD ----
 var app = builder.Build();
 
 app.UseCors();
@@ -34,20 +32,18 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "SecureAuthScanner API v1");
-        c.RoutePrefix = "swagger";   // ← Artık Swagger sadece /swagger'da açılır!
+        c.RoutePrefix = "swagger";   
     });
 }
 
-// MVC routing
-app.UseStaticFiles();   // (CSS/JS kullanacaksan)
+app.UseStaticFiles();   
 app.UseRouting();
 
-app.UseAuthorization(); // (kullanmıyorsan sorun olmaz)
-app.UseAuthentication(); // (kullanmıyorsan sorun olmaz)
+app.UseAuthorization(); 
+app.UseAuthentication(); 
 
-app.MapControllers();  // ← Klasik MVC Controller'ları ve arayüzü aktif eder!
+app.MapControllers();  
 
-// (Minimal API endpointleri istersen aşağıda bırakabilirsin.)
 app.MapPost("/scan-local", async (ScanRequest request, ScanService scanner) =>
 {
     var result = await scanner.ScanLocalAsync(request.RepositoryPath);
@@ -65,10 +61,9 @@ app.MapPost("/scan-azure", async (ScanAzureRequest request, ScanService scanner)
     return Results.Ok(result);
 });
 
-// ---- DEFAULT ROUTE AYARI ----
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=ScanUi}/{action=Index}/{id?}");
-// Ana sayfa açıldığında /ScanUi/Index çalışır
+
 
 app.Run();
