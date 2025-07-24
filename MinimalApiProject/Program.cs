@@ -42,13 +42,18 @@ app.UseRouting();
 app.UseAuthorization(); 
 app.UseAuthentication(); 
 
-app.MapControllers();  
+app.MapControllers();
 
-app.MapPost("/scan-local", async (ScanRequest request, ScanService scanner) =>
+app.MapPost("/scan-local", async (HttpRequest request, ScanService scanner) =>
 {
-    var result = await scanner.ScanLocalAsync(request.RepositoryPath);
+    var files = request.Form.Files.Where(f => f.FileName.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)).ToList();
+    if (files == null || files.Count == 0)
+        return Results.BadRequest("No .cs files uploaded.");
+
+    var result = await scanner.ScanLocalAsync(files);
     return Results.Ok(result);
 });
+
 
 app.MapPost("/scan-azure", async (ScanAzureRequest request, ScanService scanner) =>
 {

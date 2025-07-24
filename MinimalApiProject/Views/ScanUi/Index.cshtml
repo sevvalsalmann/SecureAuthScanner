@@ -1,4 +1,8 @@
-﻿@model MinimalApiProject.Models.ScanFormModel
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@model MinimalApiProject.Models.ScanFormModel
 
 @{
     ViewData["Title"] = "Authorization Annotation Checker";
@@ -9,13 +13,14 @@
 <div class="container bg-white rounded-3 shadow p-5" style="max-width:600px; margin-top:50px;">
     <h2 class="mb-4" style="color:#0a192f;">Authorization Annotation Checker</h2>
     
-    @* Hata mesajı göstergesi *@
+    @* Error message display *@
     @if (ViewBag.ErrorMessage != null)
     {
         <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
     }
     
-    <form asp-action="Scan" method="post" autocomplete="off">
+    <form asp-action="Scan" method="post" autocomplete="off" enctype="multipart/form-data">
+
         <div class="form-check mb-3">
             <input class="form-check-input" type="radio" name="Mode" id="remoteRadio" value="Remote" checked>
             <label class="form-check-label" for="remoteRadio">Remote Repository</label>
@@ -43,17 +48,41 @@
                 <input class="form-control" name="PersonalAccessToken" placeholder="Personal Access Token" />
             </div>
         </div>
+
         <div id="localFields" style="display:none;">
-            <label class="form-label">Local Folder Path</label>
-            <input class="form-control" name="LocalPath" placeholder="Local Folder Path" required />
+            <label class="form-label">Select Repository Folder</label>
+            <!-- HIDDEN file input for folder selection -->
+            <input class="form-control" type="file" id="localFiles" name="localFiles" webkitdirectory directory multiple style="display:none;" />
+            <button type="button" class="btn btn-outline-primary" id="customFileBtn">Choose Repository Folder</button>
+            <span id="fileNames" style="margin-left:10px;"></span>
+            <div class="form-text">
+                Select the root folder of your local repository. All .cs files (including subfolders) will be scanned.
+            </div>
         </div>
 
         <button type="submit" class="btn btn-primary mt-4 w-100">Scan</button>
     </form>
 </div>
 
+@section Scripts {
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Custom File Input for Folders
+    const customBtn = document.getElementById('customFileBtn');
+    const fileInput = document.getElementById('localFiles');
+    const fileNames = document.getElementById('fileNames');
+
+    if (customBtn && fileInput) {
+        customBtn.addEventListener('click', function() {
+            fileInput.click();
+        });
+        fileInput.addEventListener('change', function() {
+            let names = Array.from(fileInput.files).map(f => f.webkitRelativePath || f.name).join(", ");
+            fileNames.textContent = names.length > 0 ? `${fileInput.files.length} files selected` : "";
+        });
+    }
+
+    // Toggle remote/local fields
     const remoteRadio = document.getElementById('remoteRadio');
     const localRadio = document.getElementById('localRadio');
     const remoteFields = document.getElementById('remoteFields');
@@ -78,3 +107,5 @@ document.addEventListener('DOMContentLoaded', function() {
     toggleFields();
 });
 </script>
+}
+

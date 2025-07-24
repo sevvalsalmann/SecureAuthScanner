@@ -1,14 +1,17 @@
 ﻿using MinimalApiProject.Models;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 
 public class AuthorizationAnalyzer
 {
-    public List<ScanResult> AnalyzeFiles(IEnumerable<string> csFiles)
+    public List<ScanResult> AnalyzeFiles(IEnumerable<SourceFile> csFiles)
     {
         var results = new List<ScanResult>();
 
         foreach (var file in csFiles)
         {
-            var lines = File.ReadAllLines(file);
+            var lines = file.Content.Split(new[] { "\r\n", "\n", "\r" }, System.StringSplitOptions.None);
             string className = "";
 
             for (int i = 0; i < lines.Length; i++)
@@ -32,7 +35,7 @@ public class AuthorizationAnalyzer
                     {
                         results.Add(new ScanResult
                         {
-                            FilePath = file,
+                            FilePath = file.FilePath,
                             ClassName = className,
                             MethodName = methodName,
                             LineNumber = i + 1,
@@ -43,7 +46,7 @@ public class AuthorizationAnalyzer
                     {
                         results.Add(new ScanResult
                         {
-                            FilePath = file,
+                            FilePath = file.FilePath,
                             ClassName = className,
                             MethodName = methodName,
                             LineNumber = i + 1,

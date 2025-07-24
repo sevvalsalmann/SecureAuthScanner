@@ -1,4 +1,8 @@
-﻿@model MinimalApiProject.Models.ScanResultModel
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@model MinimalApiProject.Models.ScanResultModel
 
 @{
     ViewData["Title"] = "Scan Result";
@@ -14,14 +18,15 @@
         <div>
             @if (Model.Results != null && Model.Results.Count > 0)
             {
+                <button id="exportExcelBtn" class="btn btn-success mb-3">Export to Excel</button>
                 foreach (var r in Model.Results)
                 {
                     <div class="result-paragraph">
                         <span style="color:#0a192f;font-weight:500;">File:</span>
-                        <span>@r.FilePath</span> <br/>
+                        <span>@r.FilePath</span> <br />
                         <span style="color:#0a192f;">Class:</span> @r.ClassName &nbsp;
                         <span style="color:#0a192f;">Method:</span> @r.MethodName &nbsp;
-                        <span style="color:#0a192f;">Line:</span> @r.LineNumber <br/>
+                        <span style="color:#0a192f;">Line:</span> @r.LineNumber <br />
                         <span style="color:#0a192f;">Issue:</span>
                         <span style="font-weight:600; color:@(r.IssueType.Contains("No authorization") ? "#dc3545" : r.IssueType.Contains("present but lacks") ? "#ffc107" : "#28a745");">
                         <span class="@(r.IssueType.Contains("No authorization") ? "issue-red" : r.IssueType.Contains("present but lacks") ? "issue-yellow" : "issue-green")">
@@ -41,3 +46,33 @@
         <div class="alert alert-danger mt-4">@Model.ErrorMessage</div>
     }
 </div>
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const exportBtn = document.getElementById('exportExcelBtn');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', function () {
+                    const results = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Results));
+                    fetch('/ScanUi/ExportToExcel', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(results)
+                    })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Excel export failed');
+                        return response.blob();
+                    })
+                    .then(blob => {
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = "ScanResults.xlsx";
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                    });
+                });
+            }
+        });
+    </script>
+}
