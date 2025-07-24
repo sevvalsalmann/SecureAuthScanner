@@ -1,4 +1,8 @@
-﻿@model MinimalApiProject.Models.ScanResultModel
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@model MinimalApiProject.Models.ScanResultModel
 
 @{
     ViewData["Title"] = "Scan Result";
@@ -42,38 +46,31 @@
         <div class="alert alert-danger mt-4">@Model.ErrorMessage</div>
     }
 </div>
-
 @section Scripts {
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const exportBtn = document.getElementById('exportExcelBtn');
             if (exportBtn) {
                 exportBtn.addEventListener('click', function () {
-                    
                     const results = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Results));
-                    
                     fetch('/ScanUi/ExportToExcel', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(results) 
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(results)
                     })
-                        .then(response => {
-                            if (!response.ok) throw new Error('Excel export failed');
-                            return response.blob();
-                        })
-                        .then(blob => {
-                            const url = window.URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = "ScanResults.xlsx";
-                            document.body.appendChild(a);
-                            a.click();
-                            window.URL.revokeObjectURL(url);
-                        });
+                    .then(response => {
+                        if (!response.ok) throw new Error('Excel export failed');
+                        return response.blob();
+                    })
+                    .then(blob => {
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = "ScanResults.xlsx";
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                    });
                 });
             }
         });

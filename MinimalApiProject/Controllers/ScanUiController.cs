@@ -107,16 +107,12 @@ namespace MinimalApiProject.Controllers
             using (var workbook = new XLWorkbook())
             {
                 var worksheet = workbook.Worksheets.Add("ScanResults");
-
-                // Header
                 worksheet.Cell(1, 1).Value = "File Path";
                 worksheet.Cell(1, 2).Value = "Class";
                 worksheet.Cell(1, 3).Value = "Method";
                 worksheet.Cell(1, 4).Value = "Line";
                 worksheet.Cell(1, 5).Value = "Issue Type";
                 worksheet.Cell(1, 6).Value = "Annotation";
-
-                // Data
                 for (int i = 0; i < results.Count; i++)
                 {
                     var r = results[i];
@@ -127,12 +123,10 @@ namespace MinimalApiProject.Controllers
                     worksheet.Cell(i + 2, 5).Value = r.IssueType;
                     worksheet.Cell(i + 2, 6).Value = r.Annotation;
                 }
-
                 using (var stream = new MemoryStream())
                 {
                     workbook.SaveAs(stream);
                     stream.Seek(0, SeekOrigin.Begin);
-
                     return File(
                         stream.ToArray(),
                         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -141,5 +135,6 @@ namespace MinimalApiProject.Controllers
                 }
             }
         }
+
     }
 }
