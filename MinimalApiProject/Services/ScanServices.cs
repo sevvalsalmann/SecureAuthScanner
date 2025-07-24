@@ -9,8 +9,8 @@ public class ScanService
     public async Task<List<ScanResult>> ScanLocalAsync(List<IFormFile> localFiles)
     {
         var repository = new LocalCodeRepository(localFiles);
-        var files = await repository.GetAllCSFilesAsync(); // files: List<SourceFile>
-        return _analyzer.AnalyzeFiles(files); // files burada dosya adı + içerik birlikte!
+        var files = await repository.GetAllCSFilesAsync(); 
+        return _analyzer.AnalyzeFiles(files); 
     }
 
 

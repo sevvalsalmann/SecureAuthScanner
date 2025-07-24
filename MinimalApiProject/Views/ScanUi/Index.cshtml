@@ -44,11 +44,13 @@
                 <input class="form-control" name="PersonalAccessToken" placeholder="Personal Access Token" />
             </div>
         </div>
-<div id="localFields" style="display:none;">
-    <label class="form-label">Select .cs Files</label>
-    <input class="form-control" type="file" name="localFiles" id="localFiles" accept=".cs" multiple />
-</div>
-
+        <div id="localFields" style="display:none;">
+         
+            <input class="form-control" type="file" id="localFiles" name="localFiles" webkitdirectory directory multiple />
+            <div class="form-text">
+                Select the root folder of your local repository. All .cs files (including subfolders) will be scanned.
+            </div>
+        </div>
 
         <button type="submit" class="btn btn-primary mt-4 w-100">Scan</button>
     </form>
