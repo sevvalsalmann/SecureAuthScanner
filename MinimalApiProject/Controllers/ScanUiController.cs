@@ -64,13 +64,15 @@ namespace MinimalApiProject.Controllers
             }
             else if (model.Mode == "Local")
             {
-                if (string.IsNullOrWhiteSpace(model.LocalPath))
+                // Dosyaları Request.Form.Files ile alıyoruz
+                var localFiles = Request.Form.Files.Where(f => f.FileName.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)).ToList();
+                if (localFiles == null || localFiles.Count == 0)
                 {
-                    ViewBag.ErrorMessage = "Please enter the local folder path.";
+                    ViewBag.ErrorMessage = "Please select at least one .cs file.";
                     return View("Index", model);
                 }
 
-                var results = await _scanService.ScanLocalAsync(model.LocalPath);
+                var results = await _scanService.ScanLocalAsync(localFiles);
 
                 var resultModel = new ScanResultModel
                 {
@@ -93,6 +95,7 @@ namespace MinimalApiProject.Controllers
                 ViewBag.ErrorMessage = "Invalid repository mode.";
                 return View("Index", model);
             }
+
         }
     }
 }

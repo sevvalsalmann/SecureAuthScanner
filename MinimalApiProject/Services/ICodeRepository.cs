@@ -1,4 +1,8 @@
-﻿public interface ICodeRepository
+﻿using MinimalApiProject.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+public interface ICodeRepository
 {
-    Task<IEnumerable<string>> GetAllCSFilesAsync();
+    Task<IEnumerable<SourceFile>> GetAllCSFilesAsync();
 }

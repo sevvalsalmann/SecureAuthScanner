@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using MinimalApiProject.Models;
 
 public class AzureCodeRepository : ICodeRepository
 {
@@ -17,19 +18,13 @@ public class AzureCodeRepository : ICodeRepository
         _tempFolder = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
     }
 
-    public async Task<IEnumerable<string>> GetAllCSFilesAsync()
+    public async Task<IEnumerable<SourceFile>> GetAllCSFilesAsync()
     {
         Directory.CreateDirectory(_tempFolder);
 
-        string repoUrl;
-        if (!string.IsNullOrEmpty(_pat))
-        {
-            repoUrl = $"https://{_pat}@dev.azure.com/{_organization}/{_project}/_git/{_repo}";
-        }
-        else
-        {
-            repoUrl = $"https://dev.azure.com/{_organization}/{_project}/_git/{_repo}";
-        }
+        string repoUrl = !string.IsNullOrEmpty(_pat)
+            ? $"https://{_pat}@dev.azure.com/{_organization}/{_project}/_git/{_repo}"
+            : $"https://dev.azure.com/{_organization}/{_project}/_git/{_repo}";
 
         var psi = new ProcessStartInfo
         {
@@ -50,7 +45,17 @@ public class AzureCodeRepository : ICodeRepository
             throw new Exception($"Git clone failed: {error}");
         }
 
-        var files = Directory.GetFiles(_tempFolder, "*.cs", SearchOption.AllDirectories);
-        return files.AsEnumerable();
+        var filePaths = Directory.GetFiles(_tempFolder, "*.cs", SearchOption.AllDirectories);
+        var result = new List<SourceFile>();
+        foreach (var path in filePaths)
+        {
+            string content = await File.ReadAllTextAsync(path);
+            result.Add(new SourceFile
+            {
+                FilePath = path,
+                Content = content
+            });
+        }
+        return result;
     }
 }

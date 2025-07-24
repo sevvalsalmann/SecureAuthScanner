@@ -15,12 +15,17 @@ namespace MinimalApiProject.Controllers
             _scanService = scanService;
         }
 
-        [HttpPost("scan-local")]
-        public async Task<IActionResult> ScanLocal([FromBody] ScanRequest request)
+        [HttpPost]
+        [Route("/api/scan")]
+        public async Task<IActionResult> ScanLocal([FromForm] List<IFormFile> localFiles)
         {
-            var result = await _scanService.ScanLocalAsync(request.RepositoryPath);
-            return Ok(result);
+            if (localFiles == null || !localFiles.Any())
+                return BadRequest("No files uploaded.");
+
+            var results = await _scanService.ScanLocalAsync(localFiles);
+            return Ok(results);
         }
+
 
         [HttpPost("scan-azure")]
         public async Task<IActionResult> ScanAzure([FromBody] ScanAzureRequest request)
